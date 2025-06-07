@@ -12,7 +12,7 @@ MONGODB_URI = "mongodb+srv://arsynox:arsynox#90@cluster0.rllegme.mongodb.net/?re
 # For MongoDB Atlas (Cloud): "mongodb+srv://username:password@cluster.mongodb.net/"
 # For MongoDB with authentication: "mongodb://username:password@host:port/"
 
-DATABASE_NAME = "telegram_bot_db"  # Database name
+DATABASE_NAME = "Cluster0"  # Database name
 
 # Multiple ImgBB API Keys for Different Servers
 IMGBB_API_KEYS = {
