@@ -24,8 +24,8 @@ class Database:
             mongodb_uri: MongoDB connection URI (defaults to environment variable MONGODB_URI)
             db_name: Database name to use
         """
-        self.mongodb_uri = mongodb_uri or os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
-        self.db_name = 
+        self.mongodb_uri = mongodb_uri or os.getenv('MONGODB_URI', 'mongodb+srv://arsynox:arsynox#90@cluster0.rllegme.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+        self.db_name = db_name
         self.client = None
         self.db = None
         
