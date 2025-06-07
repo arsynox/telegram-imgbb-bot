@@ -1,92 +1,209 @@
-import sqlite3
 import asyncio
 from typing import Optional
+from datetime import datetime
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure, DuplicateKeyError
+import os
 
 class Database:
-    def __init__(self, db_path: str = "bot_database.db"):
-        self.db_path = db_path
-        self.init_database()
+    def __init__(self, mongodb_uri: str = None, db_name: str = "bot_database"):
+        """
+        Initialize MongoDB connection
+        
+        Args:
+            mongodb_uri: MongoDB connection URI (defaults to environment variable MONGODB_URI)
+            db_name: Database name to use
+        """
+        self.mongodb_uri = mongodb_uri or os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
+        self.db_name = db_name
+        
+        try:
+            self.client = MongoClient(self.mongodb_uri)
+            self.db = self.client[self.db_name]
+            
+            # Test connection
+            self.client.admin.command('ping')
+            print(f"Successfully connected to MongoDB: {self.db_name}")
+            
+            self.init_database()
+            
+        except ConnectionFailure as e:
+            print(f"Failed to connect to MongoDB: {e}")
+            raise
     
     def init_database(self):
-        """Initialize database tables"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Users table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY,
-                username TEXT,
-                first_name TEXT,
-                selected_server TEXT DEFAULT 'server_1',
-                subscription_status BOOLEAN DEFAULT 0,
-                join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Images table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS images (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                image_url TEXT,
-                delete_url TEXT,
-                upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                server_used TEXT,
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        conn.commit()
-        conn.close()
+        """Initialize database collections and indexes"""
+        try:
+            # Create collections
+            self.users_collection = self.db.users
+            self.images_collection = self.db.images
+            
+            # Create indexes for better performance
+            self.users_collection.create_index("user_id", unique=True)
+            self.images_collection.create_index("user_id")
+            self.images_collection.create_index("upload_date")
+            
+            print("Database collections and indexes initialized successfully")
+            
+        except Exception as e:
+            print(f"Error initializing database: {e}")
+            raise
     
     def add_user(self, user_id: int, username: str = None, first_name: str = None):
         """Add or update user in database"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT OR REPLACE INTO users (user_id, username, first_name, last_activity)
-            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (user_id, username, first_name))
-        
-        conn.commit()
-        conn.close()
+        try:
+            user_data = {
+                "user_id": user_id,
+                "username": username,
+                "first_name": first_name,
+                "selected_server": "server_1",
+                "subscription_status": False,
+                "join_date": datetime.utcnow(),
+                "last_activity": datetime.utcnow()
+            }
+            
+            # Use upsert to insert or update
+            self.users_collection.update_one(
+                {"user_id": user_id},
+                {
+                    "$set": {
+                        "username": username,
+                        "first_name": first_name,
+                        "last_activity": datetime.utcnow()
+                    },
+                    "$setOnInsert": {
+                        "selected_server": "server_1",
+                        "subscription_status": False,
+                        "join_date": datetime.utcnow()
+                    }
+                },
+                upsert=True
+            )
+            
+        except Exception as e:
+            print(f"Error adding/updating user {user_id}: {e}")
+            raise
     
     def get_user_server(self, user_id: int) -> str:
         """Get user's selected server"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT selected_server FROM users WHERE user_id = ?', (user_id,))
-        result = cursor.fetchone()
-        conn.close()
-        
-        return result[0] if result else 'server_1'
+        try:
+            user = self.users_collection.find_one(
+                {"user_id": user_id},
+                {"selected_server": 1}
+            )
+            
+            return user.get("selected_server", "server_1") if user else "server_1"
+            
+        except Exception as e:
+            print(f"Error getting user server for {user_id}: {e}")
+            return "server_1"
     
     def update_user_server(self, user_id: int, server: str):
         """Update user's selected server"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE users SET selected_server = ?, last_activity = CURRENT_TIMESTAMP 
-            WHERE user_id = ?
-        ''', (server, user_id))
-        
-        conn.commit()
-        conn.close()
+        try:
+            result = self.users_collection.update_one(
+                {"user_id": user_id},
+                {
+                    "$set": {
+                        "selected_server": server,
+                        "last_activity": datetime.utcnow()
+                    }
+                }
+            )
+            
+            if result.matched_count == 0:
+                # User doesn't exist, create them
+                self.add_user(user_id)
+                self.update_user_server(user_id, server)
+                
+        except Exception as e:
+            print(f"Error updating user server for {user_id}: {e}")
+            raise
     
     def log_image_upload(self, user_id: int, image_url: str, delete_url: str, server: str):
         """Log image upload to database"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        try:
+            image_data = {
+                "user_id": user_id,
+                "image_url": image_url,
+                "delete_url": delete_url,
+                "server_used": server,
+                "upload_date": datetime.utcnow()
+            }
+            
+            self.images_collection.insert_one(image_data)
+            
+        except Exception as e:
+            print(f"Error logging image upload for user {user_id}: {e}")
+            raise
+    
+    def get_user_images(self, user_id: int, limit: int = 50):
+        """Get user's uploaded images"""
+        try:
+            images = self.images_collection.find(
+                {"user_id": user_id}
+            ).sort("upload_date", -1).limit(limit)
+            
+            return list(images)
+            
+        except Exception as e:
+            print(f"Error getting images for user {user_id}: {e}")
+            return []
+    
+    def get_user_stats(self, user_id: int) -> dict:
+        """Get user statistics"""
+        try:
+            user = self.users_collection.find_one({"user_id": user_id})
+            if not user:
+                return {}
+            
+            image_count = self.images_collection.count_documents({"user_id": user_id})
+            
+            return {
+                "user_id": user["user_id"],
+                "username": user.get("username"),
+                "first_name": user.get("first_name"),
+                "selected_server": user.get("selected_server", "server_1"),
+                "subscription_status": user.get("subscription_status", False),
+                "join_date": user.get("join_date"),
+                "last_activity": user.get("last_activity"),
+                "total_images": image_count
+            }
+            
+        except Exception as e:
+            print(f"Error getting user stats for {user_id}: {e}")
+            return {}
+    
+    def close(self):
+        """Close database connection"""
+        if hasattr(self, 'client'):
+            self.client.close()
+            print("MongoDB connection closed")
+
+
+# Usage example:
+if __name__ == "__main__":
+    # Initialize with MongoDB URI
+    db = Database(
+        mongodb_uri="mongodb://username:password@host:port/database_name",
+        db_name="bot_database"
+    )
+    
+    # Or use environment variable
+    # export MONGODB_URI="mongodb://username:password@host:port/database_name"
+    # db = Database()
+    
+    try:
+        # Test the database
+        db.add_user(12345, "testuser", "Test User")
+        server = db.get_user_server(12345)
+        print(f"User server: {server}")
         
-        cursor.execute('''
-            INSERT INTO images (user_id, image_url, delete_url, server_used)
-            VALUES (?, ?, ?, ?)
-        ''', (user_id, image_url, delete_url, server))
+        db.update_user_server(12345, "server_2")
+        db.log_image_upload(12345, "http://example.com/image.jpg", "http://example.com/delete/123", "server_2")
         
-        conn.commit()
-        conn.close()
+        stats = db.get_user_stats(12345)
+        print(f"User stats: {stats}")
+        
+    finally:
+        db.close()
