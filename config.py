@@ -8,9 +8,9 @@ BOT_TOKEN = "your_telegram_bot_token_here"  # Get from @BotFather
 
 # Multiple ImgBB API Keys for Different Servers
 IMGBB_API_KEYS = {
-    'server_1': "your_imgbb_api_key_1_here",  # Server 1 API Key (6 months auto-delete)
-    'server_2': "your_imgbb_api_key_2_here",  # Server 2 API Key (1 month auto-delete)    
-    'server_3': "your_imgbb_api_key_3_here"   # Server 3 API Key (no auto-delete)
+    'server_1': "9519474fc492698dbb639aec847a1919",  # Server 1 API Key (6 months auto-delete)
+    'server_2': "2d7842bb09c5229c7dcc4acdeb7bc401",  # Server 2 API Key (1 month auto-delete)    
+    'server_3': "5c3d4b0dd67e705eec4497a46d2ae421"   # Server 3 API Key (no auto-delete)
 }
 
 # Channel Configuration for Forced Subscription
