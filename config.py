@@ -4,7 +4,7 @@
 # Replace the values below with your actual credentials
 
 # Bot Configuration
-BOT_TOKEN = "your_telegram_bot_token_here"  # Get from @BotFather
+BOT_TOKEN = "8059253160:AAH0xNsZVUKgSX6qtbuM40Gz2j51hxxZN04"  # Get from @BotFather
 
 # Multiple ImgBB API Keys for Different Servers
 IMGBB_API_KEYS = {
