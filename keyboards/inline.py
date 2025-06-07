@@ -19,9 +19,10 @@ def get_server_selection_keyboard():
 
 def get_subscription_keyboard():
     """Create subscription check keyboard"""
+    channel_username = config.CHANNEL_USERNAME.lstrip('@')  # Ensure no '@' in the URL
     keyboard = [
         [
-            InlineKeyboardButton("📢 Join Channel", url=f"https://t.me/{config.CHANNEL_USERNAME[1:]}")
+            InlineKeyboardButton("📢 Join Channel", url=f"https://t.me/{channel_username}")
         ],
         [
             InlineKeyboardButton("✅ Check Subscription", callback_data="check_subscription")
