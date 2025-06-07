@@ -1,4 +1,4 @@
-===============================================
+# ===============================================
 # TELEGRAM IMAGE HOSTING BOT CONFIGURATION
 # ===============================================
 # Replace the values below with your actual credentials
