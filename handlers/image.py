@@ -1,95 +1,42 @@
 from telegram import Update
 from telegram.ext import ContextTypes
-from telegram.constants import ParseMode
-import io
-from utils.imgbb import ImgBBUploader
-from utils.subscription import check_subscription
-from database import Database
-from keyboards.inline import get_main_menu_keyboard
-
-db = Database()
-imgbb = ImgBBUploader()
+from database import users_collection, images_collection
+from utils.imgbb import upload_image_to_imgbb
+from utils.subscription import is_user_subscribed
 
 async def image_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle image uploads"""
     user = update.effective_user
-    
+    message = update.message
+
     # Check subscription
-    is_subscribed = await check_subscription(context.bot, user.id)
-    if not is_subscribed:
-        await update.message.reply_text(
-            "🔒 Please join our channel first to use this service!",
-            parse_mode=ParseMode.MARKDOWN
-        )
+    subscribed = await is_user_subscribed(context.bot, user.id)
+    if not subscribed:
+        await message.reply_text("❌ You must subscribe to our channel to use this bot.")
         return
-    
-    # Get user's selected server
-    selected_server = db.get_user_server(user.id)
-    
-    # Send processing message
-    processing_msg = await update.message.reply_text(
-        f"🔄 **Processing your image...**\n📡 Using {config.IMGBB_SERVERS[selected_server]['name']}",
-        parse_mode=ParseMode.MARKDOWN
-    )
-    
-    try:
-        # Download image
-        if update.message.photo:
-            file = await context.bot.get_file(update.message.photo[-1].file_id)
-        elif update.message.document and update.message.document.mime_type.startswith('image/'):
-            file = await context.bot.get_file(update.message.document.file_id)
-        else:
-            await processing_msg.edit_text("❌ Please send a valid image file!")
-            return
-        
-        # Get image data
-        image_data = await file.download_as_bytearray()
-        
-        # Upload to ImgBB
-        result = await imgbb.upload_image(image_data, selected_server)
-        
-        if result and result.get('success'):
-            # Log upload
-            db.log_image_upload(
-                user.id, 
-                result['url'], 
-                result.get('delete_url', ''), 
-                selected_server
-            )
-            
-            # Format size
-            size_mb = round(result.get('size', 0) / (1024 * 1024), 2)
-            
-            success_text = f"""
-🎉 **Upload Successful!**
 
-🔗 **Direct Link:**
-`{result['url']}`
+    # Get user server from DB or default to Server1
+    user_data = await users_collection.find_one({"user_id": user.id})
+    server_name = user_data.get("server") if user_data and "server" in user_data else "Server1"
 
-📊 **Details:**
-• 📏 Size: {size_mb} MB
-• 🖥️ Server: {result.get('server_name', 'Unknown Server')}
-• ⏰ Expires: {result.get('expiration_info', 'Unknown')}
-• ⚡ Status: Ready to share!
+    # Download photo bytes
+    photo = message.photo[-1]
+    file = await context.bot.get_file(photo.file_id)
+    file_bytes = await file.download_as_bytearray()
 
-💡 *Tip: Click the link to copy it easily!*
-            """
-            
-            await processing_msg.edit_text(
-                success_text,
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=get_main_menu_keyboard()
-            )
-            
-        else:
-            error_msg = result.get('error', 'Unknown error') if result else 'Upload failed'
-            await processing_msg.edit_text(
-                f"❌ **Upload Failed**\n\n🔍 Error: {error_msg}\n\n💡 Try again or change server!",
-                parse_mode=ParseMode.MARKDOWN
-            )
-    
-    except Exception as e:
-        await processing_msg.edit_text(
-            f"❌ **Error occurred**\n\n🔍 Details: {str(e)}\n\n💡 Please try again!",
-            parse_mode=ParseMode.MARKDOWN
-        )
+    # Upload to imgbb
+    url, error = await upload_image_to_imgbb(file_bytes, server_name)
+    if error:
+        await message.reply_text(f"❌ Upload failed: {error}")
+        return
+
+    # Save image record with user, url, server, timestamp
+    import datetime
+    record = {
+        "user_id": user.id,
+        "url": url,
+        "server": server_name,
+        "timestamp": datetime.datetime.utcnow()
+    }
+    await images_collection.insert_one(record)
+
+    await message.reply_text(f"✅ Uploaded successfully!\nYour image URL:\n{url}")
