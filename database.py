@@ -6,7 +6,7 @@ from pymongo.errors import ConnectionFailure, DuplicateKeyError
 import os
 
 class Database:
-    def __init__(self, mongodb_uri: str = None, db_name: str = "bot_database"):
+    def __init__(self, mongodb_uri: str = None, db_name: str = "Cluster0"):
         """
         Initialize MongoDB connection
         
@@ -14,7 +14,7 @@ class Database:
             mongodb_uri: MongoDB connection URI (defaults to environment variable MONGODB_URI)
             db_name: Database name to use
         """
-        self.mongodb_uri = mongodb_uri or os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
+        self.mongodb_uri = mongodb_uri or os.getenv('MONGODB_URI', 'mongodb+srv://arsynox:arsynox#90@cluster0.rllegme.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
         self.db_name = db_name
         
         try:
@@ -185,8 +185,8 @@ class Database:
 if __name__ == "__main__":
     # Initialize with MongoDB URI
     db = Database(
-        mongodb_uri="mongodb://username:password@host:port/database_name",
-        db_name="bot_database"
+        mongodb_uri="mongodb+srv://arsynox:arsynox#90@cluster0.rllegme.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+        db_name="Cluster0"
     )
     
     # Or use environment variable
