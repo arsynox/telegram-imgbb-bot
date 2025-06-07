@@ -1,7 +1,7 @@
 import os
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "your_bot_token_here")
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/telegram_imgbb_bot")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://arsynox:arsynox#90@cluster0.rllegme.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 SUBSCRIBE_CHANNEL = os.getenv("SUBSCRIBE_CHANNEL", "codexfusion")
 
 # Multiple imgbb API keys with server config and deletion periods
