@@ -14,11 +14,11 @@ IMGBB_API_KEYS = {
 }
 
 # Channel Configuration for Forced Subscription
-CHANNEL_USERNAME = "@your_channel_username"  # Your channel username with @
-CHANNEL_ID = -1001234567890                  # Your channel ID (negative number)
+CHANNEL_USERNAME = "@codexfusion"  # Your channel username with @
+CHANNEL_ID = -1002638392397                 # Your channel ID (negative number)
 
 # Admin Configuration
-ADMIN_ID = 123456789                         # Your Telegram user ID
+ADMIN_ID = 6822491887                        # Your Telegram user ID
 
 # ImgBB Server Configuration
 IMGBB_SERVERS = {
