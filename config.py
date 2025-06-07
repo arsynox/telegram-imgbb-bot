@@ -8,7 +8,7 @@ BOT_TOKEN = "8059253160:AAH0xNsZVUKgSX6qtbuM40Gz2j51hxxZN04"  # Get from @BotFat
 
 # Database Configuration
 # MongoDB URI - Replace with your actual MongoDB connection string
-MONGODB_URI = "mongodb://localhost:27017/"  # Default local MongoDB
+MONGODB_URI = "mongodb+srv://arsynox:arsynox#90@cluster0.rllegme.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"  # Default local MongoDB
 # For MongoDB Atlas (Cloud): "mongodb+srv://username:password@cluster.mongodb.net/"
 # For MongoDB with authentication: "mongodb://username:password@host:port/"
 
