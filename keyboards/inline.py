@@ -1,22 +1,37 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+# keyboards/inline.py
 
-def get_server_selection_keyboard():
-    buttons = [
-        [InlineKeyboardButton("Server1 (6 months)", callback_data="server_Server1")],
-        [InlineKeyboardButton("Server2 (1 month)", callback_data="server_Server2")],
-        [InlineKeyboardButton("Server3 (No auto delete)", callback_data="server_Server3")],
-    ]
-    return InlineKeyboardMarkup(buttons)
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from config import AUTO_DELETE_DURATIONS
 
-def get_subscription_keyboard():
-    buttons = [
-        [InlineKeyboardButton("Check Subscription", callback_data="check_subscription")]
-    ]
-    return InlineKeyboardMarkup(buttons)
 
-def get_main_menu_keyboard():
-    buttons = [
-        [InlineKeyboardButton("Choose Server", callback_data="choose_server")],
-        [InlineKeyboardButton("Check Subscription", callback_data="check_subscription")]
-    ]
-    return InlineKeyboardMarkup(buttons)
+def server_selection_keyboard():
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton(
+            text="Server 1 (Delete after 6 months)", callback_data="server_server1"
+        ),
+        InlineKeyboardButton(
+            text="Server 2 (Delete after 1 month)", callback_data="server_server2"
+        ),
+        InlineKeyboardButton(
+            text="Server 3 (No auto-delete)", callback_data="server_server3"
+        ),
+    )
+    return keyboard
+
+
+def subscription_check_keyboard():
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton(text="Check Subscription", callback_data="check_subscription")
+    )
+    return keyboard
+
+
+def main_menu_keyboard():
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton(text="Change Server", callback_data="change_server"),
+        InlineKeyboardButton(text="Check Subscription", callback_data="check_subscription"),
+    )
+    return keyboard
