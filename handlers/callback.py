@@ -1,28 +1,45 @@
-from telegram import Update
-from telegram.ext import ContextTypes
-from keyboards.inline import get_server_selection_keyboard, get_main_menu_keyboard, get_subscription_keyboard
-from database import users_collection
+# handlers/callback.py
+
+from aiogram import types
+from keyboards.inline import server_selection_keyboard, subscription_check_keyboard, main_menu_keyboard
+from database import add_or_update_user, update_subscription_status
 from utils.subscription import is_user_subscribed
 
-async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user = update.effective_user
-    data = query.data
 
-    await query.answer()
+async def callback_handler(callback: types.CallbackQuery, bot):
+    data = callback.data
+    user_id = callback.from_user.id
+    username = callback.from_user.username
 
-    if data == "choose_server":
-        await query.edit_message_text("Please choose a server:", reply_markup=get_server_selection_keyboard())
-
-    elif data.startswith("server_"):
-        server_name = data.split("_")[1]
-        # Save user's chosen server in DB
-        await users_collection.update_one({"user_id": user.id}, {"$set": {"server": server_name}}, upsert=True)
-        await query.edit_message_text(f"Server chosen: {server_name}", reply_markup=get_main_menu_keyboard())
+    if data.startswith("server_"):
+        # User selected a server
+        server = data.split("_", 1)[1]
+        add_or_update_user(user_id, username=username, server=server)
+        await callback.answer(f"Server set to {server.capitalize()}. You can now upload images.")
+        await callback.message.edit_text(
+            f"Server selected: {server.capitalize()}\n\n"
+            "Send me an image to upload.",
+            reply_markup=main_menu_keyboard(),
+        )
 
     elif data == "check_subscription":
-        subscribed = await is_user_subscribed(context.bot, user.id)
+        subscribed = await is_user_subscribed(bot, user_id)
+        update_subscription_status(user_id, subscribed)
         if subscribed:
-            await query.edit_message_text("Subscription verified ✅ You can now upload images.", reply_markup=get_main_menu_keyboard())
+            await callback.answer("Subscription verified! You can now use the bot.", show_alert=True)
+            # If user has no server selected, ask to select
+            user = await bot.get_chat(user_id)
+            # We do not have direct DB access here, so just prompt server selection
+            await callback.message.edit_text(
+                "Subscription confirmed! Please select a server to start uploading images.",
+                reply_markup=server_selection_keyboard(),
+            )
         else:
-            await query.edit_message_text("You are not subscribed ❌ Please subscribe to use the bot.", reply_markup=get_subscription_keyboard())
+            await callback.answer("You are not subscribed yet. Please subscribe and try again.", show_alert=True)
+
+    elif data == "change_server":
+        await callback.answer()
+        await callback.message.edit_text(
+            "Please select a server:",
+            reply_markup=server_selection_keyboard(),
+        )
