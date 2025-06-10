@@ -2,7 +2,7 @@
 
 BOT_TOKEN = "8059253160:AAH0xNsZVUKgSX6qtbuM40Gz2j51hxxZN04"
 
-MONGODB_URI = "YOUR_MONGODB_CONNECTION_URI"
+MONGODB_URI = "mongodb+srv://arsynox:arsynox#90@cluster0.rllegme.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 # imgbb API keys mapped to server names
 IMGBB_API_KEYS = {
