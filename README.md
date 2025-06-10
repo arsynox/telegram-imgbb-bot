@@ -1,35 +1,22 @@
-# 🤖 Telegram ImgBB Bot
+# Arsynox Telegram Imgbb Bot
 
-**Professional Telegram Image Hosting Bot with ImgBB API Integration**
+A professional Telegram image hosting bot built with Python and Aiogram. It allows users to upload images which are hosted on imgbb servers with configurable auto-delete policies.
 
-A powerful Telegram bot that provides instant image hosting services using multiple ImgBB API servers with different expiration options.
+## Features
 
----
+- Multiple servers with different imgbb API keys and auto-delete durations.
+- Force subscription to a Telegram channel or group before usage.
+- Inline keyboard for server selection and subscription checking.
+- Image uploads saved to imgbb with returned URLs.
+- User and image metadata stored in MongoDB.
+- Inline mode support for image uploads.
+- Admin user support for future commands.
+- Modular code structure for easy maintenance.
 
-## ✨ Features
+## Installation
 
-- 🛡️ **Forced Subscription**  
-  Users must join your channel before accessing the service.
-
-- 🔗 **Multiple ImgBB API Support**  
-  Easily switch between multiple ImgBB API servers.
-
-- ⏰ **Custom Expiration Settings**  
-  Set how long the image should remain hosted.
-
-- ⚡ **Instant Upload**  
-  Upload images from Telegram and get a direct URL instantly.
-
-- 🧠 **Smart Handling**  
-  Handles errors, user feedback, and multiple file formats gracefully.
-
----
-
-## 🚀 Getting Started
-
-### 1. Clone the Repository
+1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/telegram-imgbb-bot.git
-cd telegram-imgbb-bot
-
+git clone https://github.com/yourusername/arsynox-telegram-imgbb-bot.git
+cd arsynox-telegram-imgbb-bot
