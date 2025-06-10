@@ -1,6 +1,6 @@
 # config.py
 
-BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+BOT_TOKEN = "8059253160:AAH0xNsZVUKgSX6qtbuM40Gz2j51hxxZN04"
 
 MONGODB_URI = "YOUR_MONGODB_CONNECTION_URI"
 
@@ -12,7 +12,7 @@ IMGBB_API_KEYS = {
 }
 
 # Subscription channel or group ID (use negative for groups)
-SUBSCRIPTION_CHANNEL_ID = "@YourChannelOrGroupUsernameOrID"
+SUBSCRIPTION_CHANNEL_ID = "@codexfusion"
 
 # Auto-delete durations in seconds (None means no auto-delete)
 AUTO_DELETE_DURATIONS = {
@@ -22,4 +22,4 @@ AUTO_DELETE_DURATIONS = {
 }
 
 # Admin Telegram user ID (integer)
-ADMIN_USER_ID = 123456789
+ADMIN_USER_ID = 6822491887
