@@ -6,9 +6,9 @@ MONGODB_URI = "YOUR_MONGODB_CONNECTION_URI"
 
 # imgbb API keys mapped to server names
 IMGBB_API_KEYS = {
-    "server1": "IMGBB_API_KEY_SERVER1",
-    "server2": "IMGBB_API_KEY_SERVER2",
-    "server3": "IMGBB_API_KEY_SERVER3",
+    "server1": "2d7842bb09c5229c7dcc4acdeb7bc401",
+    "server2": "9519474fc492698dbb639aec847a1919",
+    "server3": "5c3d4b0dd67e705eec4497a46d2ae421",
 }
 
 # Subscription channel or group ID (use negative for groups)
