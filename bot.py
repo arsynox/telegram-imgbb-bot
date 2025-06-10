@@ -1,18 +1,37 @@
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, filters
-from handlers.start import start_handler
-from handlers.callback import callback_handler
-from handlers.image import image_handler
-import config
+# bot.py
 
-def main():
-    app = ApplicationBuilder().token(config.BOT_TOKEN).build()
+import logging
+from aiogram import Bot, Dispatcher, executor, types
+from config import BOT_TOKEN, ADMIN_USER_ID
+from handlers import start, callback, image
 
-    app.add_handler(CommandHandler("start", start_handler))
-    app.add_handler(CallbackQueryHandler(callback_handler))
-    app.add_handler(MessageHandler(filters.PHOTO, image_handler))
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-    print("Bot started...")
-    app.run_polling()
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher(bot)
+
+
+@dp.message_handler(commands=["start"])
+async def on_start(message: types.Message):
+    await start.cmd_start(message, bot)
+
+
+@dp.callback_query_handler()
+async def on_callback(callback: types.CallbackQuery):
+    await callback_handler(callback)
+
+
+@dp.message_handler(content_types=types.ContentType.PHOTO)
+async def on_photo(message: types.Message):
+    await image.handle_image(message, bot)
+
+
+# Admin commands placeholder (extend as needed)
+@dp.message_handler(lambda m: m.from_user.id == ADMIN_USER_ID, commands=["admin"])
+async def admin_command(message: types.Message):
+    await message.reply("Admin command received.")
+
 
 if __name__ == "__main__":
-    main()
+    executor.start_polling(dp, skip_updates=True)
