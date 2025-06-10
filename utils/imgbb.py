@@ -1,32 +1,38 @@
+# utils/imgbb.py
+
 import requests
-import config
+from config import IMGBB_API_KEYS
 
-async def upload_image_to_imgbb(image_bytes: bytes, server_name: str):
-    """Uploads image bytes to the selected imgbb server"""
-    server = config.SERVERS.get(server_name)
-    if not server:
-        return None, "Server not found"
 
-    api_key = server["api_key"]
+class ImgbbUploadError(Exception):
+    pass
+
+
+def upload_image_to_imgbb(server_key, image_bytes):
+    """
+    Upload image bytes to imgbb using the API key for the given server.
+    Returns the image URL on success.
+    Raises ImgbbUploadError on failure.
+    """
+    api_key = IMGBB_API_KEYS.get(server_key)
+    if not api_key:
+        raise ImgbbUploadError(f"No API key configured for server '{server_key}'")
+
     url = "https://api.imgbb.com/1/upload"
-
-    payload = {
+    files = {
+        "image": image_bytes,
+    }
+    params = {
         "key": api_key,
-        "image": image_bytes.encode("base64") if isinstance(image_bytes, str) else image_bytes,
     }
 
-    # Note: imgbb expects base64 encoded image string; We'll convert bytes to base64 string
-    import base64
-    encoded_img = base64.b64encode(image_bytes).decode("utf-8")
-
-    payload["image"] = encoded_img
-
-    response = requests.post(url, data=payload)
-    if response.status_code == 200:
-        json_resp = response.json()
-        if json_resp.get("success"):
-            return json_resp["data"]["url"], None
+    try:
+        response = requests.post(url, params=params, files=files, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+        if data.get("success"):
+            return data["data"]["url"]
         else:
-            return None, json_resp.get("error", {}).get("message", "Unknown error")
-    else:
-        return None, f"HTTP Error: {response.status_code}"
+            raise ImgbbUploadError(f"ImgBB API error: {data.get('error', {}).get('message', 'Unknown error')}")
+    except requests.RequestException as e:
+        raise ImgbbUploadError(f"Request failed: {e}")
